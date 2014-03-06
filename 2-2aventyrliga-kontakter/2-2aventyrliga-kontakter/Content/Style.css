@@ -1,0 +1,19 @@
+﻿body {
+    padding: 2em;
+    line-height: 1.2em;
+    color: #2023a3;
+    font-size: large; 
+}
+h1 {
+    border-bottom: 1em solid rgba(225, 225, 232, 0.81);
+    padding-bottom: 0.5em;
+    font-size: 2em;
+    font-weight: 700;
+}
+#ValidationDiv {
+    height: 3em;
+}
+.ErrorMessages {
+    color: maroon;
+    font-weight: 700;
+}
