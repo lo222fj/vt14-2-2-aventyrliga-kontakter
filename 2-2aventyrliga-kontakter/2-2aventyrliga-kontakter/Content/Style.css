@@ -17,3 +17,9 @@ h1 {
     color: maroon;
     font-weight: 700;
 }
+th {
+    text-align: left;
+}
+a {
+    padding: 0.4em 0.4em  0.4em  0;
+}
