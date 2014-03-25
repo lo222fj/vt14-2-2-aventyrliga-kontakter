@@ -28,26 +28,37 @@ namespace _2_2aventyrliga_kontakter
         //     int startRowIndex
         //     out int totalRowCount
         //     string sortByExpression
+        public IEnumerable<Contact> ContactListView_GetDataPageWise(int startRowIndex, int maximumRows, out int totalRowCount)
+        {
+            return Service.GetContactsPageWise(startRowIndex, maximumRows, out totalRowCount);
+        }
+
+        public void ContactListView_InsertItem(Contact contact)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    Service.SaveContact(contact);
+                }
+                catch (Exception)
+                {
+                    //Det här kräver ValidationSummary
+                    ModelState.AddModelError(String.Empty, "Ett oväntat fel inträffade när kontakten skulle läggas till");
+                }
+            }
+        }
         public IEnumerable<Contact> ContactListView_GetData()
         {
             return Service.GetContacts();
         }
 
-        public void ContactListView_InsertItem(Contact contact)
-        {
-            try
-            {
-                Service.SaveContact(contact);
-            }
-            catch (Exception)
-            {
-                //Det här kräver ValidationSummary
-                ModelState.AddModelError(String.Empty, "Ett oväntat fel inträffade när kontakten skulle läggas till");
-            }
-        }
+
         // The id parameter name should match the DataKeyNames value set on the control
         public void ContactListView_UpdateItem(int ContactId)
         {
+            //ContactListView.InsertItemPosition = InsertItemPosition.FirstItem;
+
             try
             {
                 var contact = Service.GetContact(ContactId);
@@ -91,25 +102,26 @@ namespace _2_2aventyrliga_kontakter
                     return;
                 }
 
-                if (TryUpdateModel(contact))
-                {
+               // if (TryUpdateModel(contact))
+                //{
                     Service.DeleteContact(ContactId);
-                }
+                //}
             }
             catch (Exception)
             {
                 //Det här kräver ValidationSummary
                 ModelState.AddModelError(String.Empty, "Ett oväntat fel inträffade när kontakten skulle tas bort");
             }
-            //try
-            //{
-            //    Service.DeleteContact(ContactId);
-            //}
-            //catch (Exception)
-            //{
-            //    //Det här kräver ValidationSummary
-            //    ModelState.AddModelError(String.Empty, "Ett oväntat fel inträffade när kontakten skulle tas bort");
-            //}
+          }
+
+        protected void ContactListView_ItemEditing(object sender, ListViewEditEventArgs e)
+        {
+            //ContactListView.InsertItemPosition = InsertItemPosition.None;
+        }
+
+        protected void ContactListView_ItemCanceling(object sender, ListViewCancelEventArgs e)
+        {
+            //ContactListView.InsertItemPosition = InsertItemPosition.FirstItem;
         }
 
     }

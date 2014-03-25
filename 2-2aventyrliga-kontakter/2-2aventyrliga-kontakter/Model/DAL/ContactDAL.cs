@@ -25,6 +25,7 @@ namespace _2_2aventyrliga_kontakter.Model.DAL
         }
 
         //Hämtar alla kontakter
+                //Hämtar alla kontakter
         public IEnumerable<Contact> GetContacts()
         {
             using (var conn = CreateConnection())
@@ -32,14 +33,69 @@ namespace _2_2aventyrliga_kontakter.Model.DAL
                 try
                 {
                     var contacts = new List<Contact>(100);
-
                     var cmd = new SqlCommand("Person.uspGetContacts", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
+                    
+                    conn.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var contactIdIndex = reader.GetOrdinal("ContactID");
+                        var firstNameIndex = reader.GetOrdinal("FirstName");
+                        var lastNameIndex = reader.GetOrdinal("LastName");
+                        var emailAddressIndex = reader.GetOrdinal("EmailAddress");
+
+                        while (reader.Read())
+                        {
+                            contacts.Add(new Contact
+                            {
+                                ContactId = reader.GetInt32(contactIdIndex),
+                                FirstName = reader.GetString(firstNameIndex),
+                                LastName = reader.GetString(lastNameIndex),
+                                EmailAddress = reader.GetString(emailAddressIndex)
+                            });
+                        }
+                    }
+                    //Anpassar kapaciteten till faktiskt antal element i 
+                    //List-objektet = avallokerr minne som inte används
+                    contacts.TrimExcess();
+
+                    return contacts;
+                }
+
+                catch
+                {
+                    throw new ApplicationException("Ett fel inträffade när kontakterna skulle hämtas från databasen");
+                }
+            }
+        }
+        //Hämtar alla kontakter sidvis
+        public IEnumerable<Contact> GetContactsPageWise(int startRowIndex, int maximumRows, out int totalRowCount)
+        {
+            using (var conn = CreateConnection())
+            {
+                try
+                {
+                    var contacts = new List<Contact>(1000);
+
+                    var cmd = new SqlCommand("Person.uspGetContactsPageWise", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    //Proceduren kräver en parameter
+                    cmd.Parameters.Add("@PageIndex", SqlDbType.Int, 4).Value = startRowIndex+1;//Stored procedur returnerar ingenting om invärdet är 0.
+                    cmd.Parameters.Add("@PageSize", SqlDbType.Int, 4).Value = maximumRows;
+
+                    //Hämtar data från proceduren. Output-parameter i den.
+                    var param = cmd.Parameters.Add("@RecordCount", SqlDbType.Int, 4);
+                    param.Direction = ParameterDirection.Output;
+                    //param.Value = 20; // hittepå eftersom stored proceduren är fel
 
                     conn.Open();
 
                     using (var reader = cmd.ExecuteReader())
                     {
+                        //Hämtar outparameterns värde tildelar värdet till totalRowCount.
+                        
                         var contactIdIndex = reader.GetOrdinal("ContactID");
                         var firstNameIndex = reader.GetOrdinal("FirstName");
                         var lastNameIndex = reader.GetOrdinal("LastName");
@@ -56,6 +112,7 @@ namespace _2_2aventyrliga_kontakter.Model.DAL
                                 });
                         }
                     }
+                    totalRowCount = (int)cmd.Parameters["@RecordCount"].Value;
                     //Anpassar kapaciteten till faktiskt antal element i 
                     //List-objektet = avallokerr minne som inte används
                     contacts.TrimExcess();
@@ -63,9 +120,9 @@ namespace _2_2aventyrliga_kontakter.Model.DAL
                     return contacts;
                 }
 
-                catch
+                catch(Exception ex)
                 {
-                    throw new ApplicationException("Ett fel inträffade när kontakterna skulle hämtas från databasen");
+                    throw new ApplicationException("Ett fel inträffade när kontakterna skulle hämtas från databasen", ex);
                 }
             }
         }
